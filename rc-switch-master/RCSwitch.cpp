@@ -86,6 +86,7 @@ static const RCSwitch::Protocol PROGMEM proto[] = {
   { 365, { 18,  1 }, {  3,  1 }, {  1,  3 }, true },     // protocol 10 (1ByOne Doorbell)
   { 270, { 36,  1 }, {  1,  2 }, {  2,  1 }, true },     // protocol 11 (HT12E)
   { 320, { 36,  1 }, {  1,  2 }, {  2,  1 }, true }      // protocol 12 (SM5212)
+  { 250, { 18,  6 }, {  1,  3 }, {  3,  1 }, false },    // protocol 13 (Rollo)
 };
 
 enum {
@@ -467,6 +468,37 @@ void RCSwitch::sendTriState(const char* sCodeWord) {
     length += 2;
   }
   this->send(code, length);
+}
+
+/**
+ * @param sCodeWord   a quadstate code word consisting of the letter 0, 1, F, Q
+ */
+void RCSwitch::sendQuadState(const char* sCodeWord) {
+    // turn the quadstate code word into the corresponding bit pattern, then send it
+    unsigned long code = 0;
+    unsigned int length = 0;
+    for (const char* p = sCodeWord; *p; p++) {
+        code <<= 2L;
+        switch (*p) {
+        case '0':
+            // bit pattern 00
+            break;
+        case 'F':
+            // bit pattern 01
+            code |= 1L;
+            break;
+        case '1':
+            // bit pattern 11
+            code |= 3L;
+            break;
+        case 'Q':
+            // bit pattern 13
+            code |= 3L;
+            break;
+        }
+        length += 2;
+    }
+    this->send(code, length);
 }
 
 /**
